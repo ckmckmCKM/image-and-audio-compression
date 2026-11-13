@@ -2,7 +2,7 @@
   "platform": "win32-x64",
   "electron": "45.3.1",
   "electronBuilder": "26.18.0",
-  "lockSha256": "650761b6019a0f182c69308c1d359f0446cfc885031969012363e379c11a6584",
+  "lockSha256": "106494b8ebd33d53aff494b144a7588e0de20dce0021fe6ca93b7ca9c3ef302d",
   "tools": [
     {
       "file": "vendor/bin/7za.exe",

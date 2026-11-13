@@ -38,6 +38,11 @@ jobs:
         run: |
           & .\runtime\node.exe tools/smoke-desktop.cjs dist/win-unpacked/MediaCompressor.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test portable startup cache and concurrent launches
+        shell: pwsh
+        run: |
+          & .\runtime\node.exe tools/test-portable.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:

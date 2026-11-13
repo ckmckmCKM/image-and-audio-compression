@@ -126,3 +126,17 @@ test('desktop adapters use writable defaults, open folders and await cancellatio
   assert.equal((await request('open-output', { kind: 'backup' })).response.status, 200);
   assert.equal(opened, app.getJob().backupRoot);
 });
+
+test('shutdown closes unused browser preconnections after delivering the response', { timeout: 3000 }, async t => {
+  const { app, request } = await setup(t);
+  const idle = require('node:net').createConnection(app.server.address().port, '127.0.0.1');
+  idle.on('error', () => {});
+  t.after(() => idle.destroy());
+  await require('node:events').once(idle, 'connect');
+  const closed = require('node:events').once(app.server, 'close');
+  const response = await request('shutdown', {});
+  assert.equal(response.response.status, 200);
+  assert.equal(response.data.ok, true);
+  await closed;
+  assert.equal(app.server.listening, false);
+});

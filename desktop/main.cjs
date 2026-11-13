@@ -53,7 +53,9 @@ async function closeApplication() {
   if (backend?.server.listening) {
     await new Promise(resolve => {
       backend.server.close(resolve);
-      backend.server.closeIdleConnections();
+      // Chromium may keep unused preconnected sockets open. Processing and
+      // report writes have finished, so all HTTP connections can now close.
+      backend.server.closeAllConnections();
     });
   }
   window?.destroy();

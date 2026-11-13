@@ -15,7 +15,8 @@ module.exports = {
     { from: '使用说明.md', to: '使用说明.md' },
     { from: '第三方组件.md', to: '第三方组件.md' },
   ],
-  win: { target: [{ target: 'nsis', arch: ['x64'] }, { target: 'portable', arch: ['x64'] }], icon: 'build/icon.ico' },
+  win: { target: [{ target: 'nsis', arch: ['x64'] }], icon: 'build/icon.ico' },
+  afterAllArtifactBuild: require('./portable.cjs'),
   nsis: {
     artifactName: 'MediaCompressor-Setup-${version}-${arch}.${ext}',
     oneClick: false, perMachine: false, allowToChangeInstallationDirectory: true,
@@ -26,5 +27,4 @@ module.exports = {
     differentialPackage: false,
     preCompressedFileExtensions: null,
   },
-  portable: { artifactName: 'MediaCompressor-Portable-${version}-${arch}.${ext}' },
 };

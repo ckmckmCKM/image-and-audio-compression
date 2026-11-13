@@ -70,7 +70,8 @@ async function main() {
   env.PATH = [path.join(root, 'runtime'), path.join(root, 'node_modules/.bin'), env.PATH || env.Path || ''].join(path.delimiter);
   delete env.Path;
   await run(process.execPath, [path.join(root, 'node_modules/electron-builder/cli.js'), '--config', 'build/electron-builder.cjs', '--win', '--x64', '--publish', 'never'], { env });
-  const outputs = (await fs.readdir(path.join(root, 'dist'))).filter(name => /^MediaCompressor-(Setup|Portable)-.*\.exe$/.test(name));
+  const version = require(path.join(root, 'package.json')).version;
+  const outputs = [`MediaCompressor-Setup-${version}-x64.exe`, `MediaCompressor-Portable-${version}-x64.exe`];
   const sums = await Promise.all(outputs.map(async name => `${hash(await fs.readFile(path.join(root, 'dist', name)))}  ${name}`));
   await fs.writeFile(path.join(root, 'dist/SHA256SUMS.txt'), sums.join('\n') + '\n');
   console.log('打包完成，安装版和免安装版位于 dist 文件夹。');

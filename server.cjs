@@ -167,7 +167,11 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
         if (!folder || !(await fs.stat(folder).catch(() => null))?.isDirectory()) throw new Error('目录尚未生成。');
         await opener(folder); return send(res, 200, { ok: true });
       }
-      if (url.pathname === '/api/shutdown') { requireIdle(); send(res, 200, { ok: true }); server.close(); return; }
+      if (url.pathname === '/api/shutdown') {
+        requireIdle();
+        res.once('finish', () => { server.close(); server.closeAllConnections(); });
+        send(res, 200, { ok: true }); return;
+      }
       return send(res, 404, { error: '接口不存在。' });
     } catch (error) { if (!res.headersSent) send(res, error.status || 400, { error: String(error.message || error) }); else res.end(); }
   });

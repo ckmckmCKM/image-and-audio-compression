@@ -7,7 +7,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 从本仓库的 GitHub **Releases** 下载：
 
 - `MediaCompressor-Setup-<版本>-x64.exe`：双击安装后，从桌面快捷方式打开。
-- `MediaCompressor-Portable-<版本>-x64.exe`：免安装单文件，双击即可打开；首次启动需解压内置组件，请稍等。
+- `MediaCompressor-Portable-<版本>-x64.exe`：免安装单文件，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
 
 最终用户只需要一个 EXE，无需下载源码、安装 Node.js/npm、浏览器或音频编码器。本地压缩无需联网；Tinify 模式需要用户自己的 API Key。
 
@@ -29,12 +29,12 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 ## GitHub 自动发布
 
-只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.1`：
+只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.2`：
 
 ```powershell
 git push origin main
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将两个 EXE 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
@@ -44,6 +44,8 @@ git push origin v0.1.1
 ## 数据位置
 
 桌面版的设置、报告和备份保存在 `%APPDATA%\MediaCompressor\` 下，默认另存目录为 Windows 文档目录中的 `图片与音频压缩`。升级、重新打包或移动免安装 EXE 不会改变该数据目录。覆盖前会先备份；文件完成后可点击“打开备份目录”查看。
+
+免安装版组件缓存位于 `%LOCALAPPDATA%\MediaCompressor\portable\<版本与构建编号>`，退出后保留，避免每次重复解压。新版本或不同构建使用独立缓存；组件缺失时会重新准备。缓存只包含程序组件，关闭程序后可以删除，需要时会自动重建。备份和报告保存在上面的独立目录中。
 
 ## 开发与测试
 
@@ -56,6 +58,8 @@ git push origin v0.1.1
 .\runtime\node.exe --test test/*.test.cjs
 # 测试实际打包的桌面程序
 .\runtime\node.exe tools/smoke-desktop.cjs dist/win-unpacked/MediaCompressor.exe
+# 验证免安装版的缓存、并发启动、缺文件修复，并测量启动时间
+.\runtime\node.exe tools/test-portable.cjs
 ```
 
 原有 `启动图片压缩.cmd` / `停止图片压缩.cmd` 仍可启动和停止浏览器版本，浏览器版的数据保存在源码目录下。
