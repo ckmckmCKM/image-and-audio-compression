@@ -43,11 +43,11 @@ function batchName() {
   return '压缩_' + stamp + '_' + crypto.randomBytes(3).toString('hex');
 }
 
-async function createApp({ root = ROOT, processFile = processMedia, picker = pickPaths } = {}) {
+async function createApp({ root = ROOT, processFile = processMedia, picker = pickPaths, opener = openExternal, outputDir = path.join(root, 'output') } = {}) {
   const token = crypto.randomBytes(32).toString('hex');
   const entries = new Map();
-  let job = null, controller = null, serverUrl = '', dialogBusy = false;
-  let defaultOutput = path.join(root, 'output');
+  let job = null, controller = null, batchTask = null, serverUrl = '', dialogBusy = false;
+  let defaultOutput = outputDir;
   try {
     const prefs = JSON.parse(await fs.readFile(path.join(root, 'data/preferences.json'), 'utf8'));
     if (prefs.root === root && typeof prefs.outputDir === 'string' && path.isAbsolute(prefs.outputDir)) defaultOutput = prefs.outputDir;
@@ -156,7 +156,7 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
           backupRoot: data.destination === 'overwrite' ? backupRoot : '', total: entries.size, processed: 0, originalBytes: 0, finalBytes: 0, results: [], current: '', startedAt: new Date().toISOString() };
         const selected = Array.from(entries.values());
         const createdBatch = job;
-        void runBatch(selected, { mode: data.mode, audioBitrate, apiKey: hasImages && data.mode === 'tinify' ? String(data.apiKey || '').trim() : '', overwrite: data.destination === 'overwrite', outputRoot, backupRoot }).catch(error => {
+        batchTask = runBatch(selected, { mode: data.mode, audioBitrate, apiKey: hasImages && data.mode === 'tinify' ? String(data.apiKey || '').trim() : '', overwrite: data.destination === 'overwrite', outputRoot, backupRoot }).catch(error => {
           createdBatch.status = 'failed'; createdBatch.error = '批次中断：' + String(error.message || error); createdBatch.current = '';
         });
         return send(res, 200, { job: snapshot() });
@@ -165,13 +165,14 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
       if (url.pathname === '/api/open-output') {
         const folder = data.kind === 'backup' ? job?.backupRoot : job?.outputRoot || defaultOutput;
         if (!folder || !(await fs.stat(folder).catch(() => null))?.isDirectory()) throw new Error('目录尚未生成。');
-        openExternal(folder); return send(res, 200, { ok: true });
+        await opener(folder); return send(res, 200, { ok: true });
       }
       if (url.pathname === '/api/shutdown') { requireIdle(); send(res, 200, { ok: true }); server.close(); return; }
       return send(res, 404, { error: '接口不存在。' });
     } catch (error) { if (!res.headersSent) send(res, error.status || 400, { error: String(error.message || error) }); else res.end(); }
   });
-  return { server, token, setUrl(url) { serverUrl = url; }, getJob: snapshot };
+  return { server, token, setUrl(url) { serverUrl = url; }, getJob: snapshot,
+    async stop() { controller?.abort(); await batchTask; } };
 }
 
 async function main() {

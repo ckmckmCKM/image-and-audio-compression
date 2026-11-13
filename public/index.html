@@ -19,7 +19,7 @@
         <label for="audio-bitrate">音频码率</label><select id="audio-bitrate"><option value="128" selected>128 kbps</option><option value="96">96 kbps</option><option value="64">64 kbps</option></select><p class="hint">MP3 / OGG 保留格式、采样率和声道。已不高于目标码率的音频不重复编码；WAV 保持原样。</p>
         <fieldset><legend>保存方式</legend><label class="radio"><input type="radio" name="destination" value="saveAs"><span>另存到输出目录<small>保留原文件</small></span></label><label class="radio"><input type="radio" name="destination" value="overwrite" checked><span>覆盖原文件<small>只在文件变小时覆盖，并备份原文件</small></span></label></fieldset>
         <div id="output-field" hidden><label for="output-dir">输出目录</label><div class="input-action"><input id="output-dir" type="text" spellcheck="false" placeholder="选择保存位置"><button id="pick-output" title="选择输出目录">选择</button></div><p class="hint">每批建立独立文件夹，保留源文件夹层级。</p></div>
-        <p id="overwrite-note" class="callout">原文件备份保存在工具目录的 backups 文件夹，文件名、扩展名及同目录的 .meta 保持不变。</p>
+        <p id="overwrite-note" class="callout">原文件会自动备份，完成后可点击“打开备份目录”查看。文件名、扩展名及同目录的 .meta 保持不变。</p>
         <button id="start" class="primary wide" disabled>开始压缩</button><button id="cancel" class="wide" hidden>停止本批次</button>
         <div class="privacy"><span class="status-dot"></span><span id="privacy-text">本地压缩无需联网</span></div>
       </aside>

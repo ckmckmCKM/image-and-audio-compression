@@ -1,0 +1,62 @@
+{
+  "platform": "win32-x64",
+  "electron": "45.3.1",
+  "electronBuilder": "26.18.0",
+  "lockSha256": "282ca38a496f17721c956a9b4277b0de3c7f98a6131c5ced50670b44232d706b",
+  "tools": [
+    {
+      "file": "vendor/bin/7za.exe",
+      "bytes": 1231360,
+      "sha256": "b0cfdeaf429f5cc53f85123dd8f5a5feb92c19d31aa34df257edf9a26be05f95"
+    },
+    {
+      "file": "vendor/bin/7ZIP-LICENSE.txt",
+      "bytes": 1087,
+      "sha256": "e9f2248a07935f444c613d84e5a0239eab7537a80cc02212f386662f0ded0e11"
+    },
+    {
+      "file": "vendor/bin/7ZIP-BINARY-LICENSE.txt",
+      "bytes": 4193,
+      "sha256": "6da58001ac753690f69101a25a45078b8374b3a8a942478f6f49d3b0fc8b0814"
+    },
+    {
+      "file": "vendor/bin/COPYING.LGPL",
+      "bytes": 27032,
+      "sha256": "1e7e6bae5a5bde32f1ae5a7c37a082d1ab03cf89354f7f936ac40be9e39a6531"
+    }
+  ],
+  "runtime": [
+    {
+      "file": "runtime/node.exe",
+      "bytes": 85193344,
+      "sha256": "0f1098a455c7058daaaccd660d3a71dfed1cc0ffe8bea826170a7807d36fcef2"
+    },
+    {
+      "file": "runtime/ffmpeg.exe",
+      "bytes": 82797568,
+      "sha256": "04e1307997530f9cf2fe35cba2ca7e8875ca91da02f89d6c7243df819c94ad00"
+    },
+    {
+      "file": "runtime/ffprobe.exe",
+      "bytes": 80995328,
+      "sha256": "f28c4751e7367205267025aaf0fcfc921e34d9b7edaa46bd9c8abaf367fc9051"
+    }
+  ],
+  "volumes": [
+    {
+      "file": "vendor/windows-build-deps.7z.001",
+      "bytes": 50331648,
+      "sha256": "63a55fe0d6e56dd15b69c8217caae98f4d02954a94293a0ad06a5fa5e8691015"
+    },
+    {
+      "file": "vendor/windows-build-deps.7z.002",
+      "bytes": 50331648,
+      "sha256": "6b2647e5779275afcb9abb6c2910760313466c80aee743d08d1424e1eca59e32"
+    },
+    {
+      "file": "vendor/windows-build-deps.7z.003",
+      "bytes": 43304834,
+      "sha256": "a5bd3cef32b25f8e07d47dfb396ca883665de1b0a95017a00adc6f9bfc3ec7ec"
+    }
+  ]
+}

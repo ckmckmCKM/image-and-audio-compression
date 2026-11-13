@@ -1,0 +1,66 @@
+name: Build Windows EXE
+
+on:
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release version
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_NAME -cne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME must match package.json version v$version."
+          }
+      - name: Restore vendored dependencies and build offline
+        shell: pwsh
+        run: |
+          & .\runtime\node.exe tools/build-desktop.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test compression and service
+        shell: pwsh
+        run: |
+          & .\runtime\node.exe --test 'test/*.test.cjs'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Smoke test packaged desktop app
+        shell: pwsh
+        run: |
+          & .\runtime\node.exe tools/smoke-desktop.cjs dist/win-unpacked/MediaCompressor.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: MediaCompressor-Windows-x64
+          path: |
+            dist/MediaCompressor-Setup-*.exe
+            dist/MediaCompressor-Portable-*.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+      - name: Publish version release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = $env:GITHUB_REF_NAME
+          gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo $env:GITHUB_REPOSITORY --title "图片与音频压缩 $tag" --generate-notes
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          $files = @(Get-ChildItem dist/MediaCompressor-*.exe | ForEach-Object FullName)
+          $files += (Resolve-Path dist/SHA256SUMS.txt).Path
+          gh release upload $tag @files --repo $env:GITHUB_REPOSITORY --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

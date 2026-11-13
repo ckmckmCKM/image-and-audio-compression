@@ -96,3 +96,33 @@ test('Tinify key is redacted even when a compressor error contains the key', asy
   assert.ok(!JSON.stringify(done).includes('private-example-key'));
   assert.equal(done.job.results[0].error, 'failed with [已隐藏]');
 });
+
+test('desktop adapters use writable defaults, open folders and await cancellation cleanup', async t => {
+  const outputDir = path.join(os.tmpdir(), 'desktop-output');
+  let opened = '', entered, cleaned = false;
+  const began = new Promise(resolve => entered = resolve);
+  const { root, app, request } = await setup(t, {
+    outputDir,
+    opener: async folder => { opened = folder; },
+    processFile: async (_entry, { signal }) => {
+      entered();
+      await new Promise(resolve => signal.addEventListener('abort', resolve, { once: true }));
+      await new Promise(resolve => setTimeout(resolve, 20));
+      cleaned = true;
+      signal.throwIfAborted();
+    },
+  });
+  assert.equal((await request('state')).data.outputDir, outputDir);
+  const input = path.join(root, 'test.png');
+  await fs.writeFile(input, 'fixture');
+  await request('add', { paths: [input] });
+  await request('start', { mode: 'high', destination: 'overwrite' });
+  await began;
+  await app.stop();
+  assert.equal(cleaned, true);
+  assert.equal(app.getJob().status, 'cancelled');
+  assert.ok((await fs.stat(app.getJob().reportPath)).isFile());
+  await fs.mkdir(app.getJob().backupRoot, { recursive: true });
+  assert.equal((await request('open-output', { kind: 'backup' })).response.status, 200);
+  assert.equal(opened, app.getJob().backupRoot);
+});

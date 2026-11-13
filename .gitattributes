@@ -1,0 +1,10 @@
+* text=auto
+package-lock.json text eol=lf
+*.cjs text eol=lf
+*.yml text eol=lf
+*.cmd text eol=crlf
+*.exe -text
+*.png -text
+*.ico -text
+vendor/windows-build-deps.7z.* -text
+vendor/bin/* -text
