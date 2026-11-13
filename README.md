@@ -29,12 +29,12 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 ## GitHub 自动发布
 
-只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `1.2.0`：
+只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.1`：
 
 ```powershell
 git push origin main
-git tag v1.2.0
-git push origin v1.2.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将两个 EXE 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
