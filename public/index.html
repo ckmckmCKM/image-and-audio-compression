@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="tool-token" content="__SESSION_TOKEN__">
+  <title>图片与音频压缩</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <header><div class="brand"><span class="logo" aria-hidden="true">▧</span><span>图片与音频压缩<span class="brand-note">本地工具</span></span></div><button id="quit" class="quiet">退出工具</button></header>
+  <main>
+    <section class="intro"><span class="eyebrow">MEDIA COMPRESSOR</span><h1>批量压缩图片与音频</h1><p>混合添加图片和音频，一键按各自的设置处理。</p></section>
+    <div class="workspace">
+      <aside class="settings card">
+        <div class="section-heading"><span class="step">01</span><h2>压缩设置</h2></div>
+        <label for="mode">图片压缩方式</label>
+        <select id="mode"><option value="lossless">高质量</option><option value="high">高压缩</option><option value="extreme">极限压缩</option><option value="tinify">Tinify 云端压缩</option></select>
+        <p id="mode-help" class="hint">PNG 无损；JPEG 质量 90。</p>
+        <div id="key-field" hidden><label for="api-key">Tinify API Key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="填写你的 API Key"><p class="hint">仅本次使用，不保存密钥。所选图片会上传至 Tinify，消耗 API 配额。</p></div>
+        <label for="audio-bitrate">音频码率</label><select id="audio-bitrate"><option value="128" selected>128 kbps</option><option value="96">96 kbps</option><option value="64">64 kbps</option></select><p class="hint">MP3 / OGG 保留格式、采样率和声道。已不高于目标码率的音频不重复编码；WAV 保持原样。</p>
+        <fieldset><legend>保存方式</legend><label class="radio"><input type="radio" name="destination" value="saveAs"><span>另存到输出目录<small>保留原文件</small></span></label><label class="radio"><input type="radio" name="destination" value="overwrite" checked><span>覆盖原文件<small>只在文件变小时覆盖，并备份原文件</small></span></label></fieldset>
+        <div id="output-field" hidden><label for="output-dir">输出目录</label><div class="input-action"><input id="output-dir" type="text" spellcheck="false" placeholder="选择保存位置"><button id="pick-output" title="选择输出目录">选择</button></div><p class="hint">每批建立独立文件夹，保留源文件夹层级。</p></div>
+        <p id="overwrite-note" class="callout">原文件备份保存在工具目录的 backups 文件夹，文件名、扩展名及同目录的 .meta 保持不变。</p>
+        <button id="start" class="primary wide" disabled>开始压缩</button><button id="cancel" class="wide" hidden>停止本批次</button>
+        <div class="privacy"><span class="status-dot"></span><span id="privacy-text">本地压缩无需联网</span></div>
+      </aside>
+      <section class="queue card">
+        <div class="section-heading queue-heading"><div class="heading-inner"><span class="step">02</span><h2>待处理文件</h2><span id="file-count" class="count">0 个</span></div><button id="clear" class="quiet" disabled>清空列表</button></div>
+        <div class="add-actions"><button id="pick-files">添加文件</button><button id="pick-folder">添加文件夹</button><button id="toggle-path" class="quiet">粘贴路径</button></div>
+        <div id="path-box" hidden><label for="paths">图片、音频或文件夹路径，每行一个</label><textarea id="paths" rows="3" spellcheck="false" placeholder="D:\素材"></textarea><button id="add-paths">添加路径</button></div>
+        <div id="notice" role="status" hidden></div>
+        <div id="empty"><div class="empty-icon" aria-hidden="true">▧</div><h3>添加需要处理的文件</h3><p>图片与音频可混合加入，也可递归添加整个文件夹。</p><span class="formats">PNG / JPG / JPEG <span>·</span> MP3 / OGG / WAV</span></div>
+        <div id="table-wrap" hidden><table><thead><tr><th>文件</th><th class="number">原始大小</th><th class="number">处理后</th><th>结果</th><th class="remove-col"><span class="sr-only">操作</span></th></tr></thead><tbody id="file-list"></tbody></table></div>
+        <div id="progress-panel" hidden><div class="progress-label"><strong id="progress-title">准备压缩</strong><span id="progress-count">0 / 0</span></div><progress id="progress" value="0" max="1"></progress><p id="current-file"></p></div>
+        <div id="summary" hidden><div><span>文件大小</span><strong id="size-summary"></strong></div><div><span>节省空间</span><strong id="saved-summary"></strong></div><div><span>处理结果</span><strong id="result-summary"></strong></div></div>
+        <div id="result-actions" hidden><button id="open-output">打开输出目录</button><button id="open-backup" hidden>打开备份目录</button><button id="download-report" class="quiet">下载报告</button></div>
+      </section>
+    </div>
+    <footer>图片保持尺寸和透明通道，音频保持格式、采样率和声道。调色板、JPEG 和音频重新编码可能影响画质或音质。</footer>
+  </main>
+</body></html>
