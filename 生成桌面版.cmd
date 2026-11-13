@@ -7,5 +7,5 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-echo 安装版和免安装版已生成到 dist 文件夹。
+echo 免安装版已生成到 dist 文件夹，文件名为 图片与音频压缩_版本号.exe。
 pause

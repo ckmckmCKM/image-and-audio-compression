@@ -6,8 +6,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 从本仓库的 GitHub **Releases** 下载：
 
-- `MediaCompressor-Setup-<版本>-x64.exe`：双击安装后，从桌面快捷方式打开。
-- `MediaCompressor-Portable-<版本>-x64.exe`：免安装单文件，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
+`图片与音频压缩_<版本>.exe`：免安装单文件，例如 `图片与音频压缩_0.1.2.exe`。双击直接打开，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
 
 最终用户只需要一个 EXE，无需下载源码、安装 Node.js/npm、浏览器或音频编码器。本地压缩无需联网；Tinify 模式需要用户自己的 API Key。
 
@@ -17,7 +16,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 1. 在 Windows x64 上完整拉取仓库。
 2. 双击根目录的 **`生成桌面版.cmd`**。
-3. 在 `dist/` 获取安装版、免安装版和 `SHA256SUMS.txt`。
+3. 在 `dist/` 获取唯一的免安装 EXE `图片与音频压缩_<版本>.exe` 和 `SHA256SUMS.txt`。
 
 命令行方式：
 
@@ -37,7 +36,7 @@ git tag v0.1.2
 git push origin v0.1.2
 ```
 
-工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将两个 EXE 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
+工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将免安装 EXE `图片与音频压缩_<版本>.exe` 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。Actions 下载包也命名为 `图片与音频压缩_<版本>`。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
 
 发布其他版本时，先修改 `package.json` 的 `version`，用 `npm install --package-lock-only --ignore-scripts` 更新 lock 文件，再刷新离线依赖清单/分卷并验证。提交这些文件后推送匹配的版本标签。无需配置第三方发布服务；工作流使用仓库自带的 `GITHUB_TOKEN`，仓库或组织策略需允许工作流创建 Release。
 

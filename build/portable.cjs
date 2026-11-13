@@ -34,7 +34,7 @@ async function buildPortable(context) {
   }
   const version = require(path.join(root, 'package.json')).version;
   const cacheId = version + '-' + hash.digest('hex').slice(0, 24);
-  const output = path.join(context.outDir, `MediaCompressor-Portable-${version}-x64.exe`);
+  const output = path.join(context.outDir, `图片与音频压缩_${version}.exe`);
   const checks = path.join(context.outDir, 'portable-cache-checks.nsh');
   await fs.writeFile(checks, files.map(name => `IfFileExists "$cacheDir\\${literal(name)}" 0 cache_invalid`).join('\n') + '\n');
   const { getMakeNsisPath } = require('app-builder-lib/out/toolsets/windows');
@@ -53,6 +53,13 @@ async function buildPortable(context) {
     child.once('exit', code => code === 0 ? resolve() : reject(new Error('免安装版编译失败：' + code)));
   });
   await fs.writeFile(path.join(context.outDir, 'portable-cache.json'), JSON.stringify({ cacheId, version, files, executable: path.basename(output) }, null, 2) + '\n');
+  // Remove only this app's obsolete distribution files after the new EXE succeeds.
+  for (const name of await fs.readdir(context.outDir)) {
+    const obsolete = /^MediaCompressor-(Setup|Portable)-.*\.exe(?:\.blockmap)?$/.test(name)
+      || (/^图片与音频压缩_.*\.exe$/.test(name) && name !== path.basename(output))
+      || name === 'latest.yml';
+    if (obsolete) await fs.unlink(path.join(context.outDir, name));
+  }
   return [output];
 }
 module.exports = buildPortable;

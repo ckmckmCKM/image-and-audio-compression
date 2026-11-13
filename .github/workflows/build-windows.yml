@@ -17,12 +17,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate release version
+        id: version
         shell: pwsh
         run: |
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
           if ($env:GITHUB_REF_NAME -cne "v$version") {
             throw "Tag $env:GITHUB_REF_NAME must match package.json version v$version."
           }
+          "value=$version" >> $env:GITHUB_OUTPUT
       - name: Restore vendored dependencies and build offline
         shell: pwsh
         run: |
@@ -43,13 +45,12 @@ jobs:
         run: |
           & .\runtime\node.exe tools/test-portable.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Upload installers
+      - name: Upload portable EXE
         uses: actions/upload-artifact@v4
         with:
-          name: MediaCompressor-Windows-x64
+          name: 图片与音频压缩_${{ steps.version.outputs.value }}
           path: |
-            dist/MediaCompressor-Setup-*.exe
-            dist/MediaCompressor-Portable-*.exe
+            dist/图片与音频压缩_*.exe
             dist/SHA256SUMS.txt
           if-no-files-found: error
           compression-level: 0
@@ -65,7 +66,7 @@ jobs:
             gh release create $tag --repo $env:GITHUB_REPOSITORY --title "图片与音频压缩 $tag" --generate-notes
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
-          $files = @(Get-ChildItem dist/MediaCompressor-*.exe | ForEach-Object FullName)
-          $files += (Resolve-Path dist/SHA256SUMS.txt).Path
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          $files = @((Resolve-Path -LiteralPath "dist/图片与音频压缩_$version.exe").Path, (Resolve-Path dist/SHA256SUMS.txt).Path)
           gh release upload $tag @files --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

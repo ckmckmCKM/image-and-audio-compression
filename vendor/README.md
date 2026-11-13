@@ -12,7 +12,7 @@
 
 构建脚本先校验 `package-lock.json`、依赖分卷、解压工具以及内置 Node.js/FFmpeg/FFprobe 的 SHA-256，然后恢复 `node_modules/` 与 `.build-cache/electron-builder/`。构建过程不执行 `npm install`，不需要系统 Node.js/npm 或联网下载 Electron/NSIS。
 
-产物位于 `dist/`，包含安装版、免安装版和校验文件。`node_modules/`、`.build-cache/` 与 `dist/` 是恢复或生成目录，不直接提交。
+产物位于 `dist/`，包含免安装版 `图片与音频压缩_<版本>.exe` 和校验文件。`node_modules/`、`.build-cache/` 与 `dist/` 是恢复或生成目录，不直接提交。
 
 ## 维护者更新依赖
 
