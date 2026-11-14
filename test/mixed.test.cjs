@@ -22,7 +22,6 @@ async function setup(t) {
     for (let i = 0; i < 500; i++) {
       const job = (await api('state')).body.job;
       if (job?.status !== 'running') {
-        while (job.reportPath && !(await fs.stat(job.reportPath).catch(() => null))) await new Promise(resolve => setTimeout(resolve, 5));
         return job;
       }
       await new Promise(resolve => setTimeout(resolve, 20));

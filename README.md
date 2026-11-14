@@ -17,6 +17,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 1. 在 Windows x64 上完整拉取仓库。
 2. 双击根目录的 **`生成桌面版.cmd`**。
 3. 在 `dist/` 获取唯一的免安装 EXE `MediaCompressor_<版本>.exe` 和 `SHA256SUMS.txt`。
+4. 双击根目录的 **`启动桌面版.cmd`** 运行生成的 EXE。脚本自动选择 `dist/` 中修改时间最新的 `MediaCompressor_*.exe`；未找到时会提示先生成。
 
 命令行方式：
 

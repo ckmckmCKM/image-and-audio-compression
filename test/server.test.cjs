@@ -21,10 +21,6 @@ async function setup(t, options = {}) {
     for (let i = 0; i < 200; i++) {
       const state = (await request('state')).data;
       if (state.job && state.job.status !== 'running') {
-        for (let j = 0; j < 100 && state.job.reportPath; j++) {
-          if (await fs.stat(state.job.reportPath).catch(() => null)) break;
-          await new Promise(resolve => setTimeout(resolve, 10));
-        }
         return state;
       }
       await new Promise(resolve => setTimeout(resolve, 15));
@@ -61,6 +57,56 @@ test('HTTP save-as, Unicode inputs, failures continue, reports and no key leakag
   const second = await waitDone(); assert.notEqual(second.job.id, firstBatch);
   assert.equal((await fs.readdir(path.join(root, 'out'))).length, 2);
   assert.equal(JSON.parse(await fs.readFile(done.job.reportPath, 'utf8')).id, firstBatch);
+});
+
+test('batch stays running until its report directory and file are ready', async t => {
+  const { root, app, request, waitDone } = await setup(t, {
+    processFile: async entry => ({ optimized: false, originalBytes: 5, finalBytes: 5, output: entry.path }),
+  });
+  const reportDirectory = path.join(root, 'data/reports');
+  let directoryEntered, releaseDirectory, writeEntered, releaseWrite;
+  const directoryStarted = new Promise(resolve => { directoryEntered = resolve; });
+  const directoryReady = new Promise(resolve => { releaseDirectory = resolve; });
+  const writeStarted = new Promise(resolve => { writeEntered = resolve; });
+  const writeReady = new Promise(resolve => { releaseWrite = resolve; });
+  const mkdir = fs.mkdir, writeFile = fs.writeFile;
+  t.mock.method(fs, 'mkdir', async (directory, ...args) => {
+    if (directory === reportDirectory) { directoryEntered(); await directoryReady; }
+    return mkdir(directory, ...args);
+  });
+  t.mock.method(fs, 'writeFile', async (filename, ...args) => {
+    if (path.dirname(filename) === reportDirectory) { writeEntered(); await writeReady; }
+    return writeFile(filename, ...args);
+  });
+  try {
+    const input = path.join(root, 'test.png');
+    await fs.writeFile(input, 'input');
+    await request('add', { paths: [input] });
+    const options = { mode: 'high', destination: 'overwrite' };
+    assert.equal((await request('start', options)).response.status, 200);
+    await directoryStarted;
+    const preparing = (await request('state')).data.job;
+    assert.equal(preparing.status, 'running', '创建报告目录期间仍应锁定当前批次');
+    assert.equal(preparing.reportPath, undefined);
+    assert.equal((await request('start', options)).response.status, 400);
+    assert.equal((await request('report')).response.status, 400);
+    releaseDirectory();
+    await writeStarted;
+    assert.equal((await request('state')).data.job.status, 'running', '报告写入完成前不能公布完成状态');
+    assert.equal((await request('clear', {})).response.status, 400);
+    assert.equal((await request('report')).response.status, 400);
+    releaseWrite();
+    const done = (await waitDone()).job;
+    assert.equal(done.status, 'completed');
+    const report = JSON.parse(await fs.readFile(done.reportPath, 'utf8'));
+    assert.equal(report.id, preparing.id);
+    assert.equal(report.status, 'completed');
+    assert.equal(report.finishedAt, done.finishedAt);
+    assert.deepEqual((await request('report')).data, report);
+  } finally {
+    releaseDirectory(); releaseWrite();
+    await app.stop();
+  }
 });
 
 test('HTTP cancellation, picker cancellation and shutdown/queue guards', async t => {

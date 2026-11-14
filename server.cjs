@@ -83,11 +83,15 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
       }
       batch.processed++;
     }
-    batch.status = activeController.signal.aborted ? 'cancelled' : 'completed';
-    batch.current = ''; batch.finishedAt = new Date().toISOString();
+    const finished = {
+      status: activeController.signal.aborted ? 'cancelled' : 'completed',
+      current: '', finishedAt: new Date().toISOString(),
+      reportPath: path.join(root, 'data/reports', batch.id + '.json'),
+    };
+    // Keep the batch locked until its report is saved; clients can start a new batch as soon as it finishes.
     await fs.mkdir(path.join(root, 'data/reports'), { recursive: true });
-    batch.reportPath = path.join(root, 'data/reports', batch.id + '.json');
-    await fs.writeFile(batch.reportPath, JSON.stringify(snapshot(batch), null, 2) + '\n').catch(() => { batch.reportPath = ''; });
+    await fs.writeFile(finished.reportPath, JSON.stringify({ ...snapshot(batch), ...finished }, null, 2) + '\n').catch(() => { finished.reportPath = ''; });
+    Object.assign(batch, finished);
   }
 
   const server = http.createServer(async (req, res) => {
