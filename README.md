@@ -6,7 +6,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 从本仓库的 GitHub **Releases** 下载：
 
-`MediaCompressor_<版本>.exe`：免安装单文件，例如 `MediaCompressor_0.1.3.exe`。双击直接打开，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
+`MediaCompressor_<版本>.exe`：免安装单文件，例如 `MediaCompressor_0.1.4.exe`。双击直接打开，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
 
 最终用户只需要一个 EXE，无需下载源码、安装 Node.js/npm、浏览器或音频编码器。本地压缩无需联网；Tinify 模式需要用户自己的 API Key。
 
@@ -29,12 +29,12 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 ## GitHub 自动发布
 
-只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.3`：
+只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.4`：
 
 ```powershell
 git push origin main
-git tag v0.1.3
-git push origin v0.1.3
+git tag v0.1.4
+git push origin v0.1.4
 ```
 
 工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将免安装 EXE `MediaCompressor_<版本>.exe` 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。Actions 下载包命名为 `图片与音频压缩_<版本>`。EXE 使用英文文件名，避免 GitHub Release 上传时过滤中文；软件名称和发布标题保留中文。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
