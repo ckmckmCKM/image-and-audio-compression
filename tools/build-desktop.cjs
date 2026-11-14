@@ -71,7 +71,7 @@ async function main() {
   delete env.Path;
   await run(process.execPath, [path.join(root, 'node_modules/electron-builder/cli.js'), '--config', 'build/electron-builder.cjs', '--win', '--x64', '--publish', 'never'], { env });
   const version = require(path.join(root, 'package.json')).version;
-  const outputs = [`图片与音频压缩_${version}.exe`];
+  const outputs = [`MediaCompressor_${version}.exe`];
   const sums = await Promise.all(outputs.map(async name => `${hash(await fs.readFile(path.join(root, 'dist', name)))}  ${name}`));
   await fs.writeFile(path.join(root, 'dist/SHA256SUMS.txt'), sums.join('\n') + '\n');
   console.log('打包完成：dist/' + outputs[0]);

@@ -6,7 +6,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 从本仓库的 GitHub **Releases** 下载：
 
-`图片与音频压缩_<版本>.exe`：免安装单文件，例如 `图片与音频压缩_0.1.2.exe`。双击直接打开，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
+`MediaCompressor_<版本>.exe`：免安装单文件，例如 `MediaCompressor_0.1.3.exe`。双击直接打开，首次启动准备内置组件，后续直接复用缓存打开。首次准备时会显示进度窗口。
 
 最终用户只需要一个 EXE，无需下载源码、安装 Node.js/npm、浏览器或音频编码器。本地压缩无需联网；Tinify 模式需要用户自己的 API Key。
 
@@ -16,7 +16,7 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 1. 在 Windows x64 上完整拉取仓库。
 2. 双击根目录的 **`生成桌面版.cmd`**。
-3. 在 `dist/` 获取唯一的免安装 EXE `图片与音频压缩_<版本>.exe` 和 `SHA256SUMS.txt`。
+3. 在 `dist/` 获取唯一的免安装 EXE `MediaCompressor_<版本>.exe` 和 `SHA256SUMS.txt`。
 
 命令行方式：
 
@@ -28,15 +28,25 @@ Windows 10/11 x64 本地批量压缩工具。独立桌面窗口，支持 PNG/JPG
 
 ## GitHub 自动发布
 
-只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.2`：
+只有推送 `v<版本>` 标签会触发 `.github/workflows/build-windows.yml`，普通分支 push 和 PR 不触发。标签必须与 `package.json` 的版本完全一致，例如当前版本为 `0.1.3`：
 
 ```powershell
 git push origin main
-git tag v0.1.2
-git push origin v0.1.2
+git tag v0.1.3
+git push origin v0.1.3
 ```
 
-工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将免安装 EXE `图片与音频压缩_<版本>.exe` 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。Actions 下载包也命名为 `图片与音频压缩_<版本>`。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
+工作流在 Windows runner 上使用仓库内的依赖构建，运行压缩测试和打包程序的桌面测试，再将免安装 EXE `MediaCompressor_<版本>.exe` 和 SHA-256 清单上传到对应 GitHub Release，同时保留 30 天 Actions 构建产物。Actions 下载包命名为 `图片与音频压缩_<版本>`。EXE 使用英文文件名，避免 GitHub Release 上传时过滤中文；软件名称和发布标题保留中文。GitHub Actions 自身的 checkout、上传和 Release 操作需要联网；依赖恢复及 EXE 打包无需下载 npm 包或打包工具。
+
+版本更新内容维护在 [更新日志](CHANGELOG.md)。发布前必须新增与 `package.json` 一致的 `## [版本号]` 章节，并将本次 `Unreleased` 内容移入该章节；缺少或空白说明时工作流会提前失败。`tools/release-notes.cjs` 提取对应章节，首次发布及重跑时都写入 Release，不依赖合并 PR。重跑只更新当前标签的说明和同名附件，历史 Release 保留。全部发布版本可在仓库的 [Releases 列表](https://github.com/ckmckmCKM/image-and-audio-compression/releases)查看；Actions 产物的 30 天保留期限不影响 Release 附件。
+
+本地预览当前版本的发布说明：
+
+```powershell
+.\runtime\node.exe tools/release-notes.cjs .build-cache/release-notes.md
+```
+
+已发布标签仍使用该标签下的旧工作流；本次修改提交到分支后，需要发布包含修改的新版本标签才会生效，直接重跑旧标签不会切换到新流程。
 
 发布其他版本时，先修改 `package.json` 的 `version`，用 `npm install --package-lock-only --ignore-scripts` 更新 lock 文件，再刷新离线依赖清单/分卷并验证。提交这些文件后推送匹配的版本标签。无需配置第三方发布服务；工作流使用仓库自带的 `GITHUB_TOKEN`，仓库或组织策略需允许工作流创建 Release。
 

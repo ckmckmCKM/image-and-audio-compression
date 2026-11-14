@@ -25,6 +25,8 @@ jobs:
             throw "Tag $env:GITHUB_REF_NAME must match package.json version v$version."
           }
           "value=$version" >> $env:GITHUB_OUTPUT
+          & .\runtime\node.exe tools/release-notes.cjs .build-cache/release-notes.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Restore vendored dependencies and build offline
         shell: pwsh
         run: |
@@ -50,7 +52,7 @@ jobs:
         with:
           name: 图片与音频压缩_${{ steps.version.outputs.value }}
           path: |
-            dist/图片与音频压缩_*.exe
+            dist/MediaCompressor_${{ steps.version.outputs.value }}.exe
             dist/SHA256SUMS.txt
           if-no-files-found: error
           compression-level: 0
@@ -63,10 +65,13 @@ jobs:
           $tag = $env:GITHUB_REF_NAME
           gh release view $tag --repo $env:GITHUB_REPOSITORY *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --repo $env:GITHUB_REPOSITORY --title "图片与音频压缩 $tag" --generate-notes
+            gh release create $tag --repo $env:GITHUB_REPOSITORY --verify-tag --title "图片与音频压缩 $tag" --notes-file .build-cache/release-notes.md
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } else {
+            gh release edit $tag --repo $env:GITHUB_REPOSITORY --title "图片与音频压缩 $tag" --notes-file .build-cache/release-notes.md
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
-          $files = @((Resolve-Path -LiteralPath "dist/图片与音频压缩_$version.exe").Path, (Resolve-Path dist/SHA256SUMS.txt).Path)
+          $files = @((Resolve-Path -LiteralPath "dist/MediaCompressor_$version.exe").Path, (Resolve-Path dist/SHA256SUMS.txt).Path)
           gh release upload $tag @files --repo $env:GITHUB_REPOSITORY --clobber
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
