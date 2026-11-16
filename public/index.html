@@ -12,10 +12,12 @@
     <div class="workspace">
       <aside class="settings card">
         <div class="section-heading"><span class="step">01</span><h2>压缩设置</h2></div>
+        <label class="check"><input id="compress-images" type="checkbox" checked>图片压缩</label>
         <label for="mode">图片压缩方式</label>
-        <select id="mode"><option value="lossless">高质量</option><option value="high">高压缩</option><option value="extreme">极限压缩</option><option value="tinify">Tinify 云端压缩</option></select>
-        <p id="mode-help" class="hint">PNG 无损；JPEG 质量 90。</p>
+        <select id="mode"><option value="lossless">高质量</option><option value="high" selected>高压缩</option><option value="extreme">极限压缩</option><option value="tinify">Tinify 云端压缩</option></select>
+        <p id="mode-help" class="hint">PNG 调色板最多 256 色；JPEG 质量 80。</p>
         <div id="key-field" hidden><label for="api-key">Tinify API Key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="填写你的 API Key"><p class="hint">仅本次使用，不保存密钥。所选图片会上传至 Tinify，消耗 API 配额。</p></div>
+        <label class="check"><input id="compress-audio" type="checkbox" checked>音频压缩</label>
         <label for="audio-bitrate">音频码率</label><select id="audio-bitrate"><option value="128" selected>128 kbps</option><option value="96">96 kbps</option><option value="64">64 kbps</option></select><p class="hint">MP3 / OGG 保留格式、采样率和声道。已不高于目标码率的音频不重复编码；WAV 保持原样。</p>
         <fieldset><legend>保存方式</legend><label class="radio"><input type="radio" name="destination" value="saveAs"><span>另存到输出目录<small>保留原文件</small></span></label><label class="radio"><input type="radio" name="destination" value="overwrite" checked><span>覆盖原文件<small>只在文件变小时覆盖，并备份原文件</small></span></label></fieldset>
         <div id="output-field" hidden><label for="output-dir">输出目录</label><div class="input-action"><input id="output-dir" type="text" spellcheck="false" placeholder="选择保存位置"><button id="pick-output" title="选择输出目录">选择</button></div><p class="hint">每批建立独立文件夹，保留源文件夹层级。</p></div>

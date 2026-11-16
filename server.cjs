@@ -70,6 +70,11 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
     for (let i = 0; i < selected.length; i++) {
       if (activeController.signal.aborted) break;
       const entry = selected[i]; batch.current = entry.path;
+      if ((entry.kind === 'image' && options.compressImages === false) || (entry.kind === 'audio' && options.compressAudio === false)) {
+        batch.results.push({ id: entry.id, path: entry.path, name: entry.relative, kind: entry.kind, status: 'skipped', reason: 'compression-off', originalBytes: entry.bytes, finalBytes: entry.bytes, optimized: false });
+        batch.originalBytes += entry.bytes; batch.finalBytes += entry.bytes; batch.processed++;
+        continue;
+      }
       try {
         const result = await processFile(entry, { ...options, relative: names[i], signal: activeController.signal });
         const status = ['wav-preserved', 'bitrate-low'].includes(result.reason) ? 'skipped' : result.optimized ? 'optimized' : 'unchanged';
@@ -139,11 +144,14 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
       if (url.pathname === '/api/start') {
         requireIdle();
         if (!entries.size) throw new Error('请先添加图片或音频。');
-        if (!MODES.has(data.mode)) throw new Error('请选择压缩方式。');
+        const compressImages = data.compressImages !== false;
+        const compressAudio = data.compressAudio !== false;
+        if (!compressImages && !compressAudio) throw new Error('请至少勾选图片压缩或音频压缩。');
+        if (compressImages && !MODES.has(data.mode)) throw new Error('请选择压缩方式。');
         const hasImages = Array.from(entries.values()).some(entry => entry.kind === 'image');
-        if (hasImages && data.mode === 'tinify' && (!String(data.apiKey || '').trim() || /[\r\n]/.test(data.apiKey))) throw new Error('请填写有效的 Tinify API Key。');
+        if (compressImages && hasImages && data.mode === 'tinify' && (!String(data.apiKey || '').trim() || /[\r\n]/.test(data.apiKey))) throw new Error('请填写有效的 Tinify API Key。');
         const audioBitrate = data.audioBitrate == null ? 128 : Number(data.audioBitrate);
-        if (!AUDIO_BITRATES.has(audioBitrate)) throw new Error('音频码率只支持 128、96 或 64 kbps。');
+        if (compressAudio && !AUDIO_BITRATES.has(audioBitrate)) throw new Error('音频码率只支持 128、96 或 64 kbps。');
         if (!['saveAs', 'overwrite'].includes(data.destination)) throw new Error('请选择保存方式。');
         const outputDir = data.destination === 'saveAs' ? String(data.outputDir || '').trim() : defaultOutput;
         if (!path.isAbsolute(outputDir)) throw new Error('请填写完整的输出目录路径。');
@@ -156,11 +164,11 @@ async function createApp({ root = ROOT, processFile = processMedia, picker = pic
           await fs.writeFile(path.join(root, 'data/preferences.json'), JSON.stringify({ root, outputDir: defaultOutput }, null, 2));
         }
         controller = new AbortController();
-        job = { id, status: 'running', mode: data.mode, audioBitrate, destination: data.destination, outputRoot: data.destination === 'overwrite' ? '' : outputRoot,
+        job = { id, status: 'running', mode: data.mode, audioBitrate: compressAudio ? audioBitrate : null, compressImages, compressAudio, destination: data.destination, outputRoot: data.destination === 'overwrite' ? '' : outputRoot,
           backupRoot: data.destination === 'overwrite' ? backupRoot : '', total: entries.size, processed: 0, originalBytes: 0, finalBytes: 0, results: [], current: '', startedAt: new Date().toISOString() };
         const selected = Array.from(entries.values());
         const createdBatch = job;
-        batchTask = runBatch(selected, { mode: data.mode, audioBitrate, apiKey: hasImages && data.mode === 'tinify' ? String(data.apiKey || '').trim() : '', overwrite: data.destination === 'overwrite', outputRoot, backupRoot }).catch(error => {
+        batchTask = runBatch(selected, { mode: data.mode, audioBitrate, compressImages, compressAudio, apiKey: compressImages && hasImages && data.mode === 'tinify' ? String(data.apiKey || '').trim() : '', overwrite: data.destination === 'overwrite', outputRoot, backupRoot }).catch(error => {
           createdBatch.status = 'failed'; createdBatch.error = '批次中断：' + String(error.message || error); createdBatch.current = '';
         });
         return send(res, 200, { job: snapshot() });

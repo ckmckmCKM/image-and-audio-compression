@@ -14,19 +14,26 @@ async function api(route, data) {
 }
 function notice(text = '', error = false) { $('notice').textContent = text; $('notice').className = error ? 'error' : ''; $('notice').hidden = !text; }
 function settings() {
+  const imagesOn = $('compress-images').checked;
   $('mode-help').textContent = descriptions[$('mode').value];
-  $('key-field').hidden = $('mode').value !== 'tinify';
-  $('privacy-text').textContent = $('mode').value === 'tinify' ? '使用 Tinify 时需要联网' : '本地压缩无需联网';
+  $('key-field').hidden = !imagesOn || $('mode').value !== 'tinify';
+  $('privacy-text').textContent = imagesOn && $('mode').value === 'tinify' ? '使用 Tinify 时需要联网' : '本地压缩无需联网';
   $('output-field').hidden = destination() === 'overwrite';
   $('overwrite-note').hidden = destination() !== 'overwrite';
+  locks();
 }
 function locks() {
   const running = closed || busy || state.job?.status === 'running';
-  for (const id of ['pick-files', 'pick-folder', 'pick-output', 'add-paths', 'mode', 'audio-bitrate', 'api-key', 'output-dir', 'paths']) $(id).disabled = running;
+  const imagesOn = $('compress-images').checked;
+  const audioOn = $('compress-audio').checked;
+  for (const id of ['pick-files', 'pick-folder', 'pick-output', 'add-paths', 'api-key', 'output-dir', 'paths', 'compress-images', 'compress-audio']) $(id).disabled = running;
+  $('mode').disabled = running || !imagesOn;
+  $('audio-bitrate').disabled = running || !audioOn;
   for (const radio of document.querySelectorAll('input[name=destination]')) radio.disabled = running;
   for (const button of document.querySelectorAll('.remove')) button.disabled = running;
   $('clear').disabled = running || !state.entries.length;
-  $('start').disabled = running || !state.entries.length;
+  $('start').disabled = running || !state.entries.length || (!imagesOn && !audioOn);
+  $('start').title = !imagesOn && !audioOn ? '请至少勾选图片压缩或音频压缩。' : '';
   $('start').textContent = closed ? '工具已退出' : state.job?.status === 'running' ? '正在压缩…' : '开始压缩';
   $('cancel').hidden = state.job?.status !== 'running';
   $('quit').disabled = running;
@@ -51,16 +58,17 @@ function render() {
       audioInfo.textContent = `${Math.round(result.originalBitrate / 1000)} → ${Math.round(result.finalBitrate / 1000)} kbps · ${result.sampleRate} Hz · ${result.channels} 声道`;
       name.append(audioInfo);
     }
-    for (const value of [size(result?.originalBytes ?? entry.bytes), result && result.status !== 'error' ? size(result.finalBytes) : '—']) {
+    for (const value of [size(result?.originalBytes ?? entry.bytes), result && result.status !== 'error' && result.reason !== 'compression-off' ? size(result.finalBytes) : '—']) {
       const cell = document.createElement('td'); cell.className = 'number'; cell.textContent = value; row.append(cell);
     }
     const status = document.createElement('td'); status.className = 'result';
     if (result?.status === 'optimized') { status.textContent = '减小 ' + ((1 - result.finalBytes / result.originalBytes) * 100).toFixed(1).replace(/\.0$/, '') + '%'; status.classList.add('success'); }
     else if (result?.status === 'error') { status.textContent = '失败'; status.classList.add('failure'); status.title = result.error; }
     else if (result) {
-      status.textContent = result.reason === 'wav-preserved' ? '保留 WAV' : result.reason === 'bitrate-low' ? '无需降码率' : job.destination === 'overwrite' ? '保留原文件' : '原样另存';
+      status.textContent = result.reason === 'compression-off' ? '已跳过' : result.reason === 'wav-preserved' ? '保留 WAV' : result.reason === 'bitrate-low' ? '无需降码率' : job.destination === 'overwrite' ? '保留原文件' : '原样另存';
       status.classList.add('unchanged');
       if (result.reason === 'bitrate-low') status.title = '源音频码率不高于目标，不重复编码。';
+      if (result.reason === 'compression-off') status.title = '未勾选此项压缩，文件未改动。';
     }
     else status.textContent = job?.status === 'running' && job.current === entry.path ? '处理中' : '待处理';
     row.append(status);
@@ -114,6 +122,8 @@ async function pick(kind, output = false) {
   else await add(result.paths);
 }
 $('mode').onchange = settings;
+$('compress-images').onchange = settings;
+$('compress-audio').onchange = settings;
 for (const radio of document.querySelectorAll('input[name=destination]')) radio.onchange = settings;
 $('toggle-path').onclick = () => { $('path-box').hidden = !$('path-box').hidden; if (!$('path-box').hidden) $('paths').focus(); };
 $('pick-files').onclick = () => perform(() => pick('files'));
@@ -123,7 +133,7 @@ $('add-paths').onclick = () => perform(async () => { await add($('paths').value.
 $('clear').onclick = () => perform(async () => { await api('clear', {}); notice(); await refresh(); });
 $('start').onclick = () => perform(async () => {
   notice();
-  await api('start', { mode: $('mode').value, audioBitrate: Number($('audio-bitrate').value), destination: destination(), outputDir: $('output-dir').value, apiKey: $('mode').value === 'tinify' ? $('api-key').value.trim() : '' });
+  await api('start', { mode: $('mode').value, audioBitrate: Number($('audio-bitrate').value), compressImages: $('compress-images').checked, compressAudio: $('compress-audio').checked, destination: destination(), outputDir: $('output-dir').value, apiKey: $('compress-images').checked && $('mode').value === 'tinify' ? $('api-key').value.trim() : '' });
   await refresh(); poll();
 });
 $('cancel').onclick = () => perform(async () => { await api('cancel', {}); await refresh(); });
