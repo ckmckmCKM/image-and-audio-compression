@@ -1,6 +1,6 @@
 {
   "name": "standalone-image-compressor",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "本地图片与音频批量压缩桌面工具",
   "main": "desktop/main.cjs",
